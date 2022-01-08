@@ -6,6 +6,7 @@ import signal
 
 Interrupted = False
 start = 0
+stop = 3873
 
 def catch_keyboardinterrupt(signum, frame):
     global Interrupted
@@ -21,22 +22,24 @@ if __name__ == '__main__':
     except FileNotFoundError:
         try:
             data = pd.read_csv("data\\duplicate_free_41K.csv", header = 0)
+            data["rows"] = 0
+            data["cols"] = 0
+            data["ratio"] = 0.0
         except FileNotFoundError:
             print("No csvs found")
             exit()
     
     rows = len(data)
     # rows = 100
-    
+    if(stop == 0): stop = rows
+
     img_rows = np.zeros(rows)
     img_cols = np.zeros(rows)
     img_ratio = np.zeros(rows)
-    data["rows"] = 0
-    data["cols"] = 0
-    data["ratio"] = 0.0
+    
     
     timestamp = time.time()
-    for i in range(start, rows):
+    for i in range(start, stop):
         try:
             img = imread(data.iloc[i]["poster"])
             data.at[i, "rows"] = img.shape[0]
@@ -51,7 +54,7 @@ if __name__ == '__main__':
             # print("Step:", i, "failed")
             pass
         if(i % 100 == 99):
-            print("Step {}/{}".format(i + 1, rows), "Duration (100 imgs):", time.time() - timestamp)
+            print("Step {}/{}".format(i + 1, stop), "Duration (100 imgs):", time.time() - timestamp)
             timestamp = time.time()
             data.to_csv("data\\41K_processed.csv")
         if(Interrupted):
