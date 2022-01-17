@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 i = 0
 zero = 0
 if __name__ == '__main__':
-    data = pd.read_csv("data\\41K_processed.csv")
+    data = pd.read_csv("../data/41K_processed.csv")
     r = data.rows
     c = data.cols
 
