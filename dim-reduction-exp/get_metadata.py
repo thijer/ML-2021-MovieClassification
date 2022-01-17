@@ -63,8 +63,10 @@ if __name__ == '__main__':
         if(i % 100 == 99):
             print("Step {}/{}".format(i + 1, stop), "Duration (100 imgs):", time.time() - timestamp)
             timestamp = time.time()
-            data.to_csv("data\\41K_processed.csv")
+            data.to_csv("data\\41K_processed.csv", index = False)
         if(Interrupted):
             print("Stopping at", i)
-            data.to_csv("data\\41K_processed.csv")
+            data.to_csv("data\\41K_processed.csv", index = False)
             exit()
+    data.to_csv("data\\41K_processed.csv", index = False)
+    exit()
