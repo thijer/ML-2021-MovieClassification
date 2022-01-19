@@ -2,6 +2,7 @@ import torch
 import cv2
 from PIL import Image
 import numpy
+
 class data_generator(torch.utils.data.Dataset):
   def __init__(self, list_IDs, labels):
         self.labels = labels
