@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # Parameters
     params = {'batch_size': 1}
     #import labels
-    path_csv = "data/41K_processed.csv"
+    path_csv = "data/41K_processed_v2.csv"
 
     df = pd.read_csv(path_csv, delimiter=',')
 
@@ -36,6 +36,10 @@ if __name__ == '__main__':
     idx = 0
     #print(csv_reader_list)
     for name in images:
+        img = numpy.asarray(Image.open('../normal/' + name), dtype=numpy.float32)
+        if(len(img.shape)<3):
+            print(name)
+            continue
         ID[idx] = os.path.splitext(name)[0]
         labels[idx] = np.array(csv_reader_list[0])
         idx += 1
