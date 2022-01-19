@@ -45,9 +45,9 @@ def main():
     timestamp = time.time()
     for i in range(start, stop):
         try:
-            img = imread(filtered.iloc[i]["poster"])
+            img = imread(filtered.at[i, "poster"])
             img = resize(img, (y,x), preserve_range= True)
-            imgname = "data\\normal\\{}.jpg".format(filtered.iloc[i]["id"])
+            imgname = "data\\normal\\{}.jpg".format(filtered.at[i, "id"])
             img = img.astype(np.uint8)
             imsave(imgname, img)
         except Exception as ex:

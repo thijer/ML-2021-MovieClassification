@@ -8,7 +8,7 @@ Interrupted = False
 # Start at this row of the dataset,
 start = 0
 # and stop here.
-stop = 3873
+stop = 0
 
 def catch_keyboardinterrupt(signum, frame):
     global Interrupted
@@ -30,6 +30,7 @@ if __name__ == '__main__':
             data["rows"] = 0
             data["cols"] = 0
             data["ratio"] = 0.0
+            data["channels"] = 0
         except FileNotFoundError:
             print("No csvs found")
             exit()
@@ -38,23 +39,19 @@ if __name__ == '__main__':
     # rows = 100
     if(stop == 0): stop = rows
 
-    img_rows = np.zeros(rows)
-    img_cols = np.zeros(rows)
-    img_ratio = np.zeros(rows)
-    
-    
     timestamp = time.time()
     for i in range(start, stop):
         try:
             # Read image from URL, and store it in img as a numpy ndarray
-            img = imread(data.iloc[i]["poster"])
+            img = imread(data.at[i, "poster"])
             data.at[i, "rows"] = img.shape[0]
             data.at[i, "cols"] = img.shape[1]
             data.at[i, "ratio"] = img.shape[0] / img.shape[1]
             
-            img_rows[i] = img.shape[0]
-            img_cols[i] = img.shape[1]
-            img_ratio[i] = img.shape[0] / img.shape[1]
+            try:
+                data.at[i, "channels"] = img.shape[2]
+            except IndexError:
+                data.at[i, "channels"] = 1
             # print("Step:", i)
         except:
             # print("Step:", i, "failed")
@@ -64,9 +61,11 @@ if __name__ == '__main__':
             print("Step {}/{}".format(i + 1, stop), "Duration (100 imgs):", time.time() - timestamp)
             timestamp = time.time()
             data.to_csv("data\\41K_processed.csv", index = False)
+        
         if(Interrupted):
             print("Stopping at", i)
             data.to_csv("data\\41K_processed.csv", index = False)
             exit()
+        
     data.to_csv("data\\41K_processed.csv", index = False)
     exit()
