@@ -13,7 +13,7 @@ x = 256
 y = 320
 
 # Start at this row of the dataset,
-start = 700
+start = 0
 # and stop here.
 stop = 0
 
@@ -29,38 +29,56 @@ def main():
     global start, stop
     signal.signal(signal.SIGINT, catch_keyboardinterrupt)
     try:
-        data = pd.read_csv("data\\41K_processed.csv", header = 0)
+        data = pd.read_csv("data\\duplicate_free_41K.csv", header = 0)
     except FileNotFoundError:
-        print("41K_processed.csv not found in data directory. Exiting.")
+        print("csv not found in data directory. Exiting.")
         return
     
-    # Filter empty entries and rows smaller than y from the data.
-    filtered = data[(data["rows"] >= y)]
-    
-    if(stop == 0) : stop = len(filtered)
+    data["rows"] = 0
+    data["cols"] = 0
+    data["ratio"] = 0.0
+    # data["channels"] = 0
 
-    start = min(len(filtered), start)
-    stop = min(len(filtered), stop)
+    # Filter empty entries and rows smaller than y from the data.
+    # data = data[(data["rows"] >= y)]
+    
+    if(stop == 0) : stop = len(data)
+
+    start = min(len(data), start)
+    stop = min(len(data), stop)
     
     timestamp = time.time()
     for i in range(start, stop):
         try:
-            img = imread(filtered.at[i, "poster"])
-            img = resize(img, (y,x), preserve_range= True)
-            imgname = "data\\normal\\{}.jpg".format(filtered.at[i, "id"])
-            img = img.astype(np.uint8)
-            imsave(imgname, img)
+            img = imread(data.at[i, "poster"])
+            
+            if(len(img.shape) == 3):
+                if(
+                    img.shape[0] >= y and
+                    img.shape[1] >= x and
+                    img.shape[2] == 3
+                ):
+                    data.at[i, "rows"] = img.shape[0]
+                    data.at[i, "cols"] = img.shape[1]
+                    data.at[i, "ratio"] = img.shape[0] / img.shape[1]
+                    # data.at[i, "channels"] = img.shape[2]
+
+                    img = resize(img, (y,x), preserve_range= True)
+                    imgname = "data\\normal\\{}.jpg".format(data.at[i, "id"])
+                    imsave(imgname, img.astype(np.uint8))
         except Exception as ex:
             print("Exception at {}: {}".format(i, ex))
         
         if(i % 100 == 99):
             print("Step {}/{}".format(i + 1, stop), "Duration (100 imgs):", time.time() - timestamp)
             timestamp = time.time()
+            data.to_csv("data\\41K_processed_v3.csv", index = False)
             
         if(Interrupted):
             print("Stopping at", i)
             break
     print("Stopping")
+    data.to_csv("data\\41K_processed_v3.csv", index = False)
     return
 
 if __name__ == '__main__':
