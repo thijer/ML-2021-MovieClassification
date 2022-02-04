@@ -35,5 +35,10 @@ if __name__ == '__main__':
         if (i%10 == 0):
             print(i,"% data reduction gives lowest resolution of ",xarray[10*i])
 
-    plt.plot(xarray,yarray)
+    plt.plot(xarray, yarray)
+    plt.title("The distribution of image resolution")
+    plt.yticks(range(0, 101, 10))
+    plt.grid()
+    plt.ylabel("% of the total data")
+    plt.xlabel("number of pixels for the y-axis of an image")
     plt.show()
