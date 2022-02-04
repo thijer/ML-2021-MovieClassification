@@ -12,6 +12,8 @@ from CNN import *
 import random
 import pandas as pd
 import pickle
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 # Create a dataframe from csv
 
 
@@ -24,6 +26,7 @@ if __name__ == '__main__':
 
     params = {'batch_size': 36}
     #import labels
+
     '''
     path_csv = "data/41K_processed_v2.csv"
 
@@ -60,68 +63,106 @@ if __name__ == '__main__':
     #numpy.save('labels.npy', labels, allow_pickle=True)
     #numpy.save('ID.npy', ID, allow_pickle=True)
     '''
-    
+
     labels = numpy.load('labels.npy', allow_pickle=True)
     ID = numpy.load('ID.npy', allow_pickle=True)
 
-    labels = labels.item()
+    nsplits = 5
+    accuracies = np.zeros(nsplits)
+    kf = KFold(n_splits=nsplits, shuffle=True)
+    kf.get_n_splits(ID)
 
-    data = {}
-    data['training'] = ID[0:int(len(labels)*0.8)]
-    data['testing'] = ID[int(len(labels)*0.8):]
+    cv_count = 1
 
-    training_set = data_generator(data['training'], labels)
-    training_generator = torch.utils.data.DataLoader(training_set, shuffle=True, **params)
+    for train_index, test_index in kf.split(ID):
 
-    net = CNN()
-    net.cuda()
+        if not cv_count == 1:
+            labels = numpy.load('labels.npy', allow_pickle=True)
+            ID = numpy.load('ID.npy', allow_pickle=True)
 
-    criterion = nn.BCEWithLogitsLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.00001, momentum=0.9, weight_decay=0.01)
+        labels = labels.item()
 
-    running_loss = 0
-    # Loop over epochs
-    for epoch in range(10):
-        print(epoch)
-        # Training
-        for local_batch, local_labels in training_generator:
-            # Transfer to GPU
-            local_batch, local_labels = local_batch.to(device), local_labels.to(device)
-            #print(len(local_batch))
-            # zero the parameter gradients
-            optimizer.zero_grad()
+        data = {}
+        data['training'] = ID[train_index]
+        data['testing'] = ID[test_index]
 
-            # forward + backward + optimize
-            outputs = net(local_batch)
-            loss = criterion(outputs, local_labels.float())
-            loss.backward()
-            optimizer.step()
+        training_set = data_generator(data['training'], labels)
+        training_generator = torch.utils.data.DataLoader(training_set, shuffle=True, **params)
 
-    torch.save(net, "cnn_trained_10epoch_sigmoid_lr_low.pth")
+        net = CNN()
+        net.cuda()
 
-    '''
-    # evaluate model:
-    net = torch.load("cnn_trained_10epoch_sigmoid_lr_low.pth")
-    net.eval()
+        learning_rate = 0.0005
+        momentum = 0.9
+        weight_decay = 0.0005
 
-    str_labels=['action', 'adventure', 'animation', 'comedy', 'crime', 'drama', 'fantasy', 'horror', 'mystery', 'romance', 'sci-fi', 'short', 'thriller']
-    with torch.no_grad():
-        for i in data['testing'][100:200]:
-            image = numpy.asarray(Image.open('../normal/' + str(i) + '.jpg'), dtype=numpy.float32)
-            x = image.transpose(2, 0, 1)
-            x = np.expand_dims(x, axis=0)
-            x = torch.from_numpy(x).to(device)
-            out_data = net(x)
-            print(np.round(out_data.cpu(), 3))
-            print(labels[i])
-            img = cv2.imread('../normal/' + str(i) + '.jpg')
-            img = cv2.putText(img,str_labels[torch.argmax(out_data).item()], (50,50),cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),3,2)
-            cv2.imshow("poster", img)
+        criterion = nn.BCEWithLogitsLoss()
+        optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
+        # 0.2827806711055442
 
-            #waits for user to press any key
-            #(this is necessary to avoid Python kernel form crashing)
-            cv2.waitKey(0)
+        print("INFO: this is cross-validation", cv_count, ". The lr = ", learning_rate,
+              ", the momentum = ", momentum, ", the weight_decay = ", weight_decay)
+        cv_count += 1
 
-            #closing all open windows
-            cv2.destroyAllWindows()
-    '''
+        running_loss = 0
+        # Loop over epochs
+        for epoch in range(10):
+            print("Current epoch = ", epoch)
+            # Training
+            for local_batch, local_labels in training_generator:
+                # Transfer to GPU
+                local_batch, local_labels = local_batch.to(device), local_labels.to(device)
+                #print(len(local_batch))
+                # zero the parameter gradients
+                optimizer.zero_grad()
+
+                # forward + backward + optimize
+                outputs = net(local_batch)
+                loss = criterion(outputs, local_labels.float())
+                loss.backward()
+                optimizer.step()
+
+        torch.save(net, "cnn_trained_10epoch_sigmoid_lr_low.pth")
+
+        # evaluate model:
+        net = torch.load("cnn_trained_10epoch_sigmoid_lr_low.pth")
+        net.eval()
+
+        acc=0
+        amount = 0
+
+        str_labels=['action', 'adventure', 'animation', 'comedy', 'crime', 'drama', 'fantasy', 'horror', 'mystery', 'romance', 'sci-fi', 'short', 'thriller']
+        with torch.no_grad():
+            for i in data['testing'][0:]:
+                image = numpy.asarray(Image.open('../normal/' + str(i) + '.jpg'), dtype=numpy.float32)
+                x = image.transpose(2, 0, 1)
+                x = np.expand_dims(x, axis=0)
+                x = torch.from_numpy(x).to(device)
+                out_data = net(x)
+
+                highest_idx = torch.argmax(np.round(out_data.cpu(), 3)).item()
+
+                amount += 1
+                if labels[i][highest_idx] == 1:
+                    acc += 1
+
+                #print(np.round(out_data.cpu(), 3))
+                #print(labels[i])
+                img = cv2.imread('../normal/' + str(i) + '.jpg')
+                img = cv2.putText(img,str_labels[torch.argmax(out_data).item()], (50,50),cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),3,2)
+                #cv2.imshow("poster", img)
+
+                #waits for user to press any key
+                #(this is necessary to avoid Python kernel form crashing)
+                cv2.waitKey(0)
+
+                #closing all open windows
+                cv2.destroyAllWindows()
+
+        print("The accuracy obtained = ", acc/amount)
+        accuracies[cv_count-2] = acc/amount
+
+        torch.save(net, "cnn_trained_10epoch_sigmoid_lr_low.pth")
+    print(np.sum(np.asarray(accuracies)))
+    print(np.sum(accuracies)/5)
+
