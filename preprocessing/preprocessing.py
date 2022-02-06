@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import os
 from skimage.io import imread, imsave
 from skimage.transform import resize
 import time

@@ -6,7 +6,6 @@ import torch.nn.functional as F
 import numpy as np
 from data_generator import *
 from timeit import default_timer as timer
-from torchinfo import summary
 
 torch.cuda.empty_cache()
 
@@ -32,8 +31,8 @@ print(f'{total_trainable_params:,} training parameters.')
 
 model_ft = model_ft.to('cuda')
 
-labels = np.load('labels.npy', allow_pickle=True)
-ID = np.load('ID.npy', allow_pickle=True)
+labels = np.load('data/labels.npy', allow_pickle=True)
+ID = np.load('data/ID.npy', allow_pickle=True)
 
 labels = labels.item()
 
@@ -82,4 +81,4 @@ model = train(
     testing_generator,
     n_epochs=5)
 
-torch.save(model, "VGG16_5epoch.pth")
+torch.save(model, "models/VGG16_5epoch.pth")

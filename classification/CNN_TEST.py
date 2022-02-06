@@ -34,7 +34,7 @@ if __name__ == '__main__':
     str_labels=['action', 'adventure', 'animation', 'comedy', 'crime', 'drama', 'fantasy', 'horror', 'mystery', 'romance', 'sci-fi', 'short', 'thriller']
     # User list comprehension to create a list of lists from Dataframe rows
     csv_reader_list = [list(row) for row in df.values]
-    images = os.listdir("../normal")
+    images = os.listdir("data/normal")
     ID = np.empty((len(images)), dtype=int)
     labels = {}
     idx = 0
@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
         row= df.loc[df['id'] == int(os.path.splitext(name)[0])].values[0]
         if str(row[0]) + '.jpg' in images:
-            img = numpy.asarray(Image.open('../normal/' + str(row[0]) + '.jpg'), dtype=numpy.float32)
+            img = numpy.asarray(Image.open('data/normal/' + str(row[0]) + '.jpg'), dtype=numpy.float32)
             if(len(img.shape)<3):
                 continue
             ID[idx] = row[0]
@@ -55,12 +55,12 @@ if __name__ == '__main__':
     #    np.random.shuffle(labels)
     #print(labels)
 
-    #numpy.save('labels.npy', labels, allow_pickle=True)
-    #numpy.save('ID.npy', ID, allow_pickle=True)
+    #numpy.save('data/labels.npy', labels, allow_pickle=True)
+    #numpy.save('data/ID.npy', ID, allow_pickle=True)
     '''
 
-    labels = numpy.load('labels.npy', allow_pickle=True)
-    ID = numpy.load('ID.npy', allow_pickle=True)
+    labels = numpy.load('data/labels.npy', allow_pickle=True)
+    ID = numpy.load('data/ID.npy', allow_pickle=True)
 
     nsplits = 5
     accuracies = np.zeros(nsplits)
@@ -72,8 +72,8 @@ if __name__ == '__main__':
     for train_index, test_index in kf.split(ID):
 
         if not cv_count == 1:
-            labels = numpy.load('labels.npy', allow_pickle=True)
-            ID = numpy.load('ID.npy', allow_pickle=True)
+            labels = numpy.load('data/labels.npy', allow_pickle=True)
+            ID = numpy.load('data/ID.npy', allow_pickle=True)
 
         labels = labels.item()
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
         running_loss = 0
 
-        for epoch in range(10):
+        for epoch in range(1):
             print("Current epoch = ", epoch)
             # Training
             for local_batch, local_labels in training_generator:
@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
         #torch.save(net, "cnn_trained_10epoch_sigmoid_lr_low.pth")
 
-        net = torch.load("cnn_trained_10epoch_sigmoid_lr_low.pth")
+        net = torch.load("models/cnn_trained_10epoch_sigmoid_lr_low.pth")
         net.eval()
 
         acc=0
@@ -123,7 +123,7 @@ if __name__ == '__main__':
         str_labels=['action', 'adventure', 'animation', 'comedy', 'crime', 'drama', 'fantasy', 'horror', 'mystery', 'romance', 'sci-fi', 'short', 'thriller']
         with torch.no_grad():
             for i in data['testing'][0:]:
-                image = numpy.asarray(Image.open('../normal/' + str(i) + '.jpg'), dtype=numpy.float32)
+                image = numpy.asarray(Image.open('data/normal/' + str(i) + '.jpg'), dtype=numpy.float32)
                 x = image.transpose(2, 0, 1)
                 x = np.expand_dims(x, axis=0)
                 x = torch.from_numpy(x).to(device)
@@ -133,7 +133,7 @@ if __name__ == '__main__':
                 if labels[i][highest_idx] == 1:
                     acc += 1
 
-                img = cv2.imread('../normal/' + str(i) + '.jpg')
+                img = cv2.imread('data/normal/' + str(i) + '.jpg')
                 img = cv2.putText(img,str_labels[torch.argmax(out_data).item()], (50,50),cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),3,2)
 
                 #(this is necessary to avoid Python kernel form crashing)
@@ -145,6 +145,6 @@ if __name__ == '__main__':
         print("The accuracy obtained = ", acc/amount)
         accuracies[cv_count-2] = acc/amount
 
-        torch.save(net, "cnn_trained_10epoch_sigmoid_lr_low.pth")
+        torch.save(net, "models/cnn_trained_10epoch_sigmoid_lr_low.pth")
     print(np.sum(np.asarray(accuracies)))
     print(np.sum(accuracies)/5)
