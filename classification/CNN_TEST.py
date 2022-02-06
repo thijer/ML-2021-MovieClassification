@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
         #torch.save(net, "cnn_trained_10epoch_sigmoid_lr_low.pth")
 
-        net = torch.load("models/cnn_trained_10epoch_sigmoid_lr_low.pth")
+        #net = torch.load("models/cnn_trained_10epoch_sigmoid_lr_low.pth")
         net.eval()
 
         acc=0
