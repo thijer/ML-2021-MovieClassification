@@ -6,10 +6,11 @@ from skimage.transform import resize
 import time
 import signal
 
-
+# This is the same for every image in the dataset
 x = 256
-# Set this to some useful value depending on remaining 
-# dataset size and resulting dimension size of img
+
+# Set this to some useful value depending on desired 
+# dataset size and resulting dimension size of img.
 y = 320
 
 # Start at this row of the dataset,
@@ -29,7 +30,7 @@ def main():
     global start, stop
     signal.signal(signal.SIGINT, catch_keyboardinterrupt)
     try:
-        data = pd.read_csv("data\\duplicate_free_41K.csv", header = 0)
+        data = pd.read_csv("data/duplicate_free_41K.csv", header = 0)
     except FileNotFoundError:
         print("csv not found in data directory. Exiting.")
         return
@@ -64,7 +65,7 @@ def main():
                     # data.at[i, "channels"] = img.shape[2]
 
                     img = resize(img, (y,x), preserve_range= True)
-                    imgname = "data\\normal\\{}.jpg".format(data.at[i, "id"])
+                    imgname = "data/normal/{}.jpg".format(data.at[i, "id"])
                     imsave(imgname, img.astype(np.uint8))
         except Exception as ex:
             print("Exception at {}: {}".format(i, ex))
@@ -72,13 +73,13 @@ def main():
         if(i % 100 == 99):
             print("Step {}/{}".format(i + 1, stop), "Duration (100 imgs):", time.time() - timestamp)
             timestamp = time.time()
-            data.to_csv("data\\41K_processed_v3.csv", index = False)
+            data.to_csv("data/41K_processed_v3.csv", index = False)
             
         if(Interrupted):
             print("Stopping at", i)
             break
     print("Stopping")
-    data.to_csv("data\\41K_processed_v3.csv", index = False)
+    data.to_csv("data/41K_processed_v3.csv", index = False)
     return
 
 if __name__ == '__main__':

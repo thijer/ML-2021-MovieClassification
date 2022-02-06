@@ -3,23 +3,18 @@ from skimage.io import imread
 from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
-import pickle
 
 img_dim = 320 * 256 * 3
 path = "data/"
-batch_size = 10000
+batch_size = 1000
 components = None
 
 def load_img(id):
     return imread(path + "normal/{}.jpg".format(id[0])).astype(np.int16).flatten()
 
 def main(pca_path = None):
-    if(pca_path == None):
-        pca = IncrementalPCA(components, batch_size = batch_size)
-    else:
-        with open(pca_path, 'rb') as out:
-            pca = pickle.load(out)
-        
+    pca = IncrementalPCA(components, batch_size = batch_size)
+       
     data = pd.read_csv(path + "41K_processed_v3.csv", index_col='id')
     data = data[data["cols"] != 0]
     ids = data.index.to_numpy()
@@ -53,14 +48,9 @@ def fit(pca: IncrementalPCA, ids):
     plt.xlabel('Number of components')
     plt.ylabel('Explained variance')
     
-    if(components != None): 
-        plt.savefig('Scree_{}_components.png'.format(components))
-        with open("pca_{}.bin".format(components), 'wb') as out: pickle.dump(pca, out)
-    else: 
-        plt.savefig('Scree_all_components.png')
-        with open("pca.bin", 'wb') as out: pickle.dump(pca, out)
-
-
+    if(components != None): plt.savefig('Scree_{}_components.png'.format(components))
+    else: plt.savefig('Scree_all_components.png')
+        
 def generate_pca_dataset(pca):
     pass
 
