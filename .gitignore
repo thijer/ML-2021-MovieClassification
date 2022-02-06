@@ -1,2 +1,4 @@
 .vscode
 /data/normal
+__pycache__
+.idea
