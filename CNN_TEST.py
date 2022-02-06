@@ -112,9 +112,9 @@ if __name__ == '__main__':
                 loss.backward()
                 optimizer.step()
 
-        torch.save(net, "cnn_trained_10epoch_sigmoid_lr_low.pth")
+        #torch.save(net, "cnn_trained_10epoch_sigmoid_lr_low.pth")
 
-        #net = torch.load("cnn_trained_10epoch_sigmoid_lr_low.pth")
+        net = torch.load("cnn_trained_10epoch_sigmoid_lr_low.pth")
         net.eval()
 
         acc=0
