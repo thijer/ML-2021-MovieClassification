@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
         running_loss = 0
 
-        for epoch in range(1):
+        for epoch in range(10):
             print("Current epoch = ", epoch)
             # Training
             for local_batch, local_labels in training_generator:
